@@ -1,5 +1,5 @@
 // index.js
-require('dotenv').config();           // ← loads MONGODB_URI into process.env
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -107,8 +107,13 @@ io.on('connection', socket => {
     socket.on("loginAdmin", async ({ username, password }, callback) => {
         // Your auth logic here...
         const admin = await Admin.findOne({ username });
+        console.log(admin);
+
+        console.log(admin && admin.checkPassword(password));
+
         if (admin && admin.checkPassword(password)) {
             const token = generateTokenFor(admin);
+
             return callback({ success: true, token });
         }
         callback({ success: false, message: "Invalid credentials" });
