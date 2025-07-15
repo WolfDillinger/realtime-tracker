@@ -107,12 +107,11 @@ io.on('connection', socket => {
     socket.on("loginAdmin", async ({ username, password }, callback) => {
         // Your auth logic here...
         const admin = await Admin.findOne({ username });
-        console.log(admin);
 
-        console.log(admin && admin.checkPassword(password));
+        const user = admin.toObject();
 
-        if (admin && admin.checkPassword(password)) {
-            const token = generateTokenFor(admin);
+        if (user && user.checkPassword(password)) {
+            const token = generateTokenFor(user);
 
             return callback({ success: true, token });
         }
