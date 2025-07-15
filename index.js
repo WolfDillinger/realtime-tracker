@@ -134,6 +134,8 @@ io.on('connection', socket => {
             // 4) Optionally issue a token immediately:
             const token = generateTokenFor({ id: admin._id, username: admin.username });
 
+            console.log('Admin registered.');
+
             // 5) Acknowledge success
             callback({ success: true, message: 'Admin registered.', token });
         } catch (err) {
