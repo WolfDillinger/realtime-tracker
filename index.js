@@ -110,7 +110,7 @@ io.on('connection', socket => {
 
         const user = admin.toObject();
 
-        if (user && user.checkPassword(password)) {
+        if (user && admin.checkPassword(password)) {
             const token = generateTokenFor(user);
 
             return callback({ success: true, token });
