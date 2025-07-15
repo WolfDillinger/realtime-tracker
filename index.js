@@ -34,7 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 1) Connect to MongoDB
 mongoose
     .connect(process.env.MONGODB_URI)
-    .then(() => console.log('✔ MongoDB connected'))
+    .then(() => console.log('✔ MongoDB connected test'))
     .catch(err => console.error('✖ MongoDB connection error:', err));
 
 // helper to find or create a user document by IP
