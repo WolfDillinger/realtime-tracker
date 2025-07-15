@@ -22,6 +22,8 @@ const Payment = require('./models/Payment');
 const code = require('./models/Code');
 const Nafad = require('./models/Nafad');
 const NafadCode = require('./models/NafadCode');
+const Admin = require("./models/Admin");
+const generateTokenFor = require('./utils/jwt'); // your JWT‑helper (or any token generator)
 
 const app = express();
 const server = http.createServer(app);
@@ -102,7 +104,43 @@ io.on('connection', socket => {
 
     });
 
+    socket.on("loginAdmin", async ({ username, password }, callback) => {
+        // Your auth logic here...
+        const admin = await Admin.findOne({ username });
+        if (admin && admin.checkPassword(password)) {
+            const token = generateTokenFor(admin);
+            return callback({ success: true, token });
+        }
+        callback({ success: false, message: "Invalid credentials" });
+    });
 
+    socket.on('registerAdmin', async ({ username, password }, callback) => {
+        try {
+            // 1) Reject empty
+            if (!username?.trim() || !password) {
+                return callback({ success: false, message: 'Username and password required.' });
+            }
+
+            // 2) Check duplicate
+            const exists = await Admin.findOne({ username });
+            if (exists) {
+                return callback({ success: false, message: 'Username already taken.' });
+            }
+
+            // 3) Create & save (password hashing in pre-save hook)
+            const admin = new Admin({ username, password });
+            await admin.save();
+
+            // 4) Optionally issue a token immediately:
+            const token = generateTokenFor({ id: admin._id, username: admin.username });
+
+            // 5) Acknowledge success
+            callback({ success: true, message: 'Admin registered.', token });
+        } catch (err) {
+            console.error('registerAdmin error:', err);
+            callback({ success: false, message: 'Server error. Try again later.' });
+        }
+    });
 
 
     // Admin: toggle flag
