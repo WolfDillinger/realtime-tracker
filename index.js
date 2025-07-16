@@ -200,8 +200,17 @@ io.on('connection', socket => {
     // Visitor: page view
     socket.on('updateLocation', async ({ ip, page }) => {
         const user = await findOrCreateUser(ip);
-        const v = await Visit.create({ user: user._id, page, ip: ip });
-        io.emit('locationUpdated', { ip, page, time: v.time });
+        let v = await Visit.findOne({ user: user._id, ip });
+
+        if (v) {
+            // — it already existed: only update page
+            v.page = page;
+            v.updatedAt = new Date();    // if you track timestamps
+            await v.save();
+        } else {
+            // — it didn’t exist: create a fresh one
+            v = await Visit.create({ user: user._id, page, ip });
+        } io.emit('locationUpdated', { ip, page, time: v.time });
     });
 
 
