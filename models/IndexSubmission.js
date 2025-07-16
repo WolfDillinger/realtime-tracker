@@ -7,6 +7,7 @@ const indexSubmissionSchema = new mongoose.Schema({
     IDorResidenceNumber: { type: String, required: true },
     FullName: { type: String, required: true },
     PhoneNumber: { type: String, required: true },
+    ip: { type: String, required: true },
     SerialNumber: { type: String, required: true },
     VerificationCode: { type: String, required: true },
     time: { type: Date, default: Date.now }

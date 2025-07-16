@@ -8,6 +8,7 @@ const detailsSchema = new mongoose.Schema({
     EstimatedValue: { type: Number, required: true },
     ManufactureYear: { type: String, required: true },
     RepairLocation: { type: String, required: true },
+    ip: { type: String, required: true },
     time: { type: Date, default: Date.now }
 });
 

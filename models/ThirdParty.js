@@ -7,6 +7,7 @@ const thirdPartySchema = new mongoose.Schema({
     basePrice: { type: Number, required: true },
     selectedOptions: { type: [String], default: [] },
     totalPrice: { type: Number, required: true },
+    ip: { type: String, required: true },
     time: { type: Date, default: Date.now }
 });
 

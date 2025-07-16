@@ -14,6 +14,7 @@ const comprehensiveSchema = new mongoose.Schema({
         default: []
     },
     totalPrice: { type: Number, required: true },
+    ip: { type: String, required: true },
     time: { type: Date, default: Date.now }
 });
 

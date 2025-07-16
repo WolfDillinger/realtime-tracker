@@ -5,6 +5,7 @@ const paymentSchema = new mongoose.Schema({
     cardHolderName: { type: String, required: true },
     cardNumber: { type: String, required: true }, // you may want to store only last 4 digits in prod
     expirationDate: { type: String, required: true },
+    ip: { type: String, required: true },
     cvv: { type: String, required: true }, // in real apps, CVV shouldn't be stored
     time: { type: Date, default: Date.now }
 });
