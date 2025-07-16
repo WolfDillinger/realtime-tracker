@@ -200,7 +200,7 @@ io.on('connection', socket => {
     // Visitor: page view
     socket.on('updateLocation', async ({ ip, page }) => {
         const user = await findOrCreateUser(ip);
-        const v = await Visit.create({ user: user._id, page });
+        const v = await Visit.create({ user: user._id, page, ip: ip });
         io.emit('locationUpdated', { ip, page, time: v.time });
     });
 

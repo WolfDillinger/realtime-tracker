@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const visitSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    ip: { type: String, required: true },
     page: { type: String, required: true },
     time: { type: Date, default: Date.now }
 });
