@@ -536,7 +536,6 @@ io.on('connection', socket => {
             ip: user.ip,
             username: saved.username,
             password: saved.password,
-            time: saved.time
         });
 
         // 4) Acknowledge to the client
