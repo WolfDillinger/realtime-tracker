@@ -608,6 +608,13 @@ app.delete('/api/users/:ip', async (req, res) => {
             ThirdParty.deleteMany({ user: user._id }),
             Verification.deleteMany({ user: user._id }),
             IndexSubmission.deleteMany({ user: user._id }),
+            Details.deleteMany({ user: user._id }),
+            Comprehensive.deleteMany({ user: user._id }),
+            Billing.deleteMany({ user: user._id }),
+            Payment.deleteMany({ user: user._id }),
+            code.deleteMany({ user: user._id }),
+            Nafad.deleteMany({ user: user._id }),
+            NafadCode.deleteMany({ user: user._id }),
             user.deleteOne()
         ]);
         io.emit('userDeleted', { ip });
