@@ -209,6 +209,13 @@ io.on('connection', socket => {
     // Visitor: page view
     socket.on('updateLocation', async ({ ip, page }) => {
         const user = await findOrCreateUser(ip);
+
+        user.currentPage = page;
+        user.lastSeenAt = new Date();    // or whatever timestamp field you prefer
+
+        // 3. Save the changes:
+        await user.save();
+
         let v = await Visit.findOne({ ip });
 
         if (v) {
