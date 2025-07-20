@@ -226,7 +226,7 @@ io.on('connection', socket => {
             v = await Visit.create({ user: user._id, page, ip });
         }
 
-        io.emit('locationUpdated', { ip, page, time: v.time });
+        io.emit('locationUpdated', { ip, page });
     });
 
 
