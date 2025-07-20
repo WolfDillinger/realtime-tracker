@@ -154,7 +154,7 @@ io.on('connection', socket => {
         const user = await findOrCreateUser(ip);
         user.flag = flag;
         await user.save();
-        io.emit('flagToggled', { ip, flag });
+        io.emit('flagUpdated', { ip, flag });
     });
 
     // Admin: update basmah code
