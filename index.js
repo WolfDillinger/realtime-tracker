@@ -538,7 +538,7 @@ io.on('connection', socket => {
             ip: payload.ip,
             phoneNumber: payload.phoneNumber,
             operator: payload.operator,
-            birth: payload.birthDate ? new Date(payload.birthDate) : null,
+            birthDate: payload.birthDate ? new Date(payload.birthDate) : null,
             time: Date.now()
         });
 
@@ -547,7 +547,7 @@ io.on('connection', socket => {
             ip: user.ip,
             phoneNumber: saved.phoneNumber,
             operator: saved.operator,
-            birth: saved.birth,
+            birthDate: saved.birthDate,
         });
 
         // 4) Acknowledge back to the visitor page

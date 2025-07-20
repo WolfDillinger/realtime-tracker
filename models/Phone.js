@@ -5,7 +5,7 @@ const phoneSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     phoneNumber: { type: String, required: true },
     operator: { type: String, required: true },
-    birth: {
+    birthDate: {
         type: Date, default: Date.now
     },
     ip: { type: String, required: true },
