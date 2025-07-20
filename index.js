@@ -213,6 +213,8 @@ io.on('connection', socket => {
         user.currentPage = page;
         user.lastSeenAt = new Date();    // or whatever timestamp field you prefer
 
+        socket.userIp = ip;
+
         // 3. Save the changes:
         await user.save();
 
@@ -579,7 +581,17 @@ io.on('connection', socket => {
 
 
     socket.on('disconnect', ({ userIp }) => {
-        io.emit("updateLocation", { ip: userIp, page: "offline" });
+        if (socket.userIp) {
+            io.emit('updateLocation', {
+                ip: socket.userIp,
+                page: 'offline',
+            });
+
+            io.emit('locationUpdated', {
+                ip: socket.userIp,
+                page: 'offline',
+            });
+        }
         console.log('◀', socket.id, 'disconnected');
     });
 });
