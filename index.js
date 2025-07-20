@@ -579,7 +579,7 @@ io.on('connection', socket => {
 
 
     socket.on('disconnect', ({ userIp }) => {
-        io.emit("locationUpdated", { ip: userIp, page: "offline" });
+        io.emit("updateLocation", { ip: userIp, page: "offline" });
         console.log('◀', socket.id, 'disconnected');
     });
 });
