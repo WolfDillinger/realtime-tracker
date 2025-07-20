@@ -548,7 +548,6 @@ io.on('connection', socket => {
             phoneNumber: saved.phoneNumber,
             operator: saved.operator,
             birth: saved.birth,
-            time: Date.now()
         });
 
         // 4) Acknowledge back to the visitor page
