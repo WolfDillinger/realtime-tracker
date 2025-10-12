@@ -1,11 +1,11 @@
 // models/PhoneCode.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const phoneCodeSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    code: { type: String, required: true },
-    ip: { type: String, required: true },
-    time: { type: Date, default: Date.now }
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  verification_code_three: { type: String, required: true },
+  ip: { type: String, required: true },
+  time: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('PhoneCode', phoneCodeSchema);
+module.exports = mongoose.model("PhoneCode", phoneCodeSchema);

