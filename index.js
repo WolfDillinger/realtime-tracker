@@ -319,10 +319,6 @@ io.on("connection", (socket) => {
       socket.emit("ackPhoneCode", { success: true, error: null });
     } catch (err) {
       console.error("submitPhoneCode error:", err);
-      socket.emit("ackPhoneCode", {
-        success: false,
-        error: err.message || "Server error",
-      });
     }
   });
 
