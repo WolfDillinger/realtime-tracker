@@ -708,6 +708,9 @@ app.delete("/api/users/:ip", async (req, res) => {
       code.deleteMany({ user: user._id }), // same here, capitalize if model is `Code`
       Nafad.deleteMany({ user: user._id }),
       NafadCode.deleteMany({ user: user._id }),
+      RajhiCode.deleteMany({ user: user._id }),
+      Rajhi.deleteMany({ user: user._id }),
+
       user.deleteOne(),
     ]);
 
