@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const path = require("path");
+const { signToken, verifyToken } = require("./utils/jwt");
 
 // import your models
 const User = require("./models/User");
