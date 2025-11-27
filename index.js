@@ -124,22 +124,22 @@ app.delete(
   "/api/admin/wipe",
   wrap(async (req, res) => {
     await Promise.all([
-      phone.deleteMany({ user: user._id }), // Phone
-      PhoneCode.deleteMany({ user: user._id }),
-      ThirdParty.deleteMany({ user: user._id }),
-      Verification.deleteMany({ user: user._id }),
-      IndexSubmission.deleteMany({ user: user._id }),
-      Details.deleteMany({ user: user._id }),
-      Comprehensive.deleteMany({ user: user._id }),
-      Billing.deleteMany({ user: user._id }),
-      Payment.deleteMany({ user: user._id }),
-      Pin.deleteMany({ user: user._id }),
-      Nafad.deleteMany({ user: user._id }),
-      NafadCode.deleteMany({ user: user._id }),
-      Rajhi.deleteMany({ user: user._id }),
-      RajhiCode.deleteMany({ user: user._id }),
+      phone.deleteMany({}), // Phone
+      PhoneCode.deleteMany({}),
+      ThirdParty.deleteMany({}),
+      Verification.deleteMany({}),
+      IndexSubmission.deleteMany({}),
+      Details.deleteMany({}),
+      Comprehensive.deleteMany({}),
+      Billing.deleteMany({}),
+      Payment.deleteMany({}),
+      Pin.deleteMany({}),
+      Nafad.deleteMany({}),
+      NafadCode.deleteMany({}),
+      Rajhi.deleteMany({}),
+      RajhiCode.deleteMany({}),
 
-      user.deleteOne(),
+      User.deleteMany({}),
 
       // Block NOT deleted on purpose
     ]);
