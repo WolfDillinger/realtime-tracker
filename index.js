@@ -375,20 +375,6 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("loginAdmin", async ({ username, password }, callback) => {
-    // Your auth logic here...
-    const admin = await Admin.findOne({ username });
-
-    const user = admin.toObject();
-
-    if (user && admin.checkPassword(password)) {
-      const token = generateTokenFor(user);
-
-      return callback({ success: true, token });
-    }
-    callback({ success: false, message: "Invalid credentials" });
-  });
-
   socket.on("registerAdmin", async ({ username, password }, callback) => {
     try {
       // 1) Reject empty
@@ -402,7 +388,10 @@ io.on("connection", (socket) => {
       // 2) Check duplicate
       const exists = await Admin.findOne({ username });
       if (exists) {
-        return callback({ success: false, message: "Username already taken." });
+        return callback({
+          success: false,
+          message: "Username already taken.",
+        });
       }
 
       // 3) Create & save (password hashing in pre-save hook)
@@ -421,7 +410,70 @@ io.on("connection", (socket) => {
       callback({ success: true, message: "Admin registered.", token });
     } catch (err) {
       console.error("registerAdmin error:", err);
-      callback({ success: false, message: "Server error. Try again later." });
+    }
+  });
+
+  socket.on("loginAdmin", async ({ username, password }, callback) => {
+    try {
+      // 1) find admin
+      const admin = await Admin.findOne({ username });
+      if (!admin) {
+        return callback({ success: false, message: "Invalid credentials" });
+      }
+
+      // 2) check password (your model method)
+      const ok = await admin.checkPassword(password);
+      if (!ok) {
+        return callback({ success: false, message: "Invalid credentials" });
+      }
+
+      // 3) make a safe payload (no password)
+      const userPayload = {
+        id: admin._id.toString(),
+        username: admin.username,
+        role: admin.role || "admin",
+        tokenVersion: admin.tokenVersion ?? 0,
+      };
+
+      // 4) create token from safe payload
+      const token = signToken(userPayload); // your JWT/sign fn
+
+      return callback({ success: true, token, admin: userPayload });
+    } catch (err) {
+      console.error("loginAdmin error:", err);
+      return callback({ success: false, message: "Server error" });
+    }
+  });
+
+  socket.on("verifyAdminToken", async ({ token }, cb = () => {}) => {
+    try {
+      if (!token) return cb({ valid: false });
+
+      // 1) decode
+      const payload = verifyToken(token); // should contain { userId, tokenVersion? }
+
+      // 2) find admin
+      // ✅ payload.id (not userId)
+      const admin = await Admin.findById(payload.id);
+      if (!admin) {
+        console.log("[server] admin not found");
+        return cb({ valid: false });
+      }
+
+      // ✅ check tokenVersion if present
+      if (
+        typeof payload.tokenVersion === "number" &&
+        admin.tokenVersion !== payload.tokenVersion
+      ) {
+        console.log("[server] tokenVersion mismatch");
+        return cb({ valid: false });
+      }
+
+      // 4) ok
+      return cb({ valid: true });
+    } catch (err) {
+      console.error("verifyAdminToken error:", err.message);
+      return cb({ valid: false });
     }
   });
 
