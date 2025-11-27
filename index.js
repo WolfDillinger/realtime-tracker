@@ -375,7 +375,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("registerAdmin", async ({ username, password }, callback) => {
+  /*   socket.on("registerAdmin", async ({ username, password }, callback) => {
     try {
       // 1) Reject empty
       if (!username?.trim() || !password) {
@@ -412,7 +412,7 @@ io.on("connection", (socket) => {
       console.error("registerAdmin error:", err);
     }
   });
-
+ */
   socket.on("loginAdmin", async ({ username, password }, callback) => {
     try {
       // 1) find admin
