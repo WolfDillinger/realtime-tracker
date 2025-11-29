@@ -519,6 +519,8 @@ io.on("connection", (socket) => {
         }
       );
 
+      console.log("Basmah updated:", doc);
+
       io.emit("nafadCode", { ip, code: doc.code });
       socket.emit("ackBasmah", { success: true });
     } catch (err) {
